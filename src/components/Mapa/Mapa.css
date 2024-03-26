@@ -1,6 +1,35 @@
 .mapContainer {
+  position: relative;
   width: 100vw;
-  height: 100vh;
-  margin-top: 0.1rem;
+  height: 90vh;
+  margin-top: 1px;
   float: right;
 }
+
+
+.input-group {
+  position: absolute; /* Aplica un posicionamiento absoluto a la barra de búsqueda y al botón */
+  top: 10px; /* Ajusta estos valores según tus necesidades */
+  left: 10px;
+  z-index: 1000;
+}
+
+.stadiamaps-search-box .input-container input {
+  display: block;
+  width: 100%;
+  height: calc(1.5em + .75rem + 2px);
+  padding: .375rem .75rem;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgb(0, 0, 0);
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #2d76c2;
+  border-radius: .25rem;
+  transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+
+
+
+}
+
