@@ -6,10 +6,15 @@ import "@stadiamaps/maplibre-search-box/dist/style.css";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import "./Mapa.css";
 
-const key = "9enKVnnLS2ZOaMAb4cYj"
+const key = "9enKVnnLS2ZOaMAb4cYj";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let corrorigen: number[] = [];
+let corrdestino: number[] = [];
+const keyRuta = "5b3ce3597851110001cf62480a6f9f8b91f8439eb52a7da46f3275aa";
 const Map = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   useEffect(() => {
+
     const initializeMap = () => {
       const map = new maplibregl.Map({
         container: mapContainer.current!,
@@ -18,8 +23,20 @@ const Map = () => {
         bearing: 45,
         zoom: 4,
       });
-      const control = new MapLibreSearchControl();
-
+      const control = new MapLibreSearchControl({
+        onResultSelected: (feature) => {
+          const lat = feature.geometry.coordinates[0];
+          const lon = feature.geometry.coordinates[1];
+          console.log(`Latitud aca : ${lat}, Longitud: ${lon}`);
+          corrdestino = [lat, lon];
+          console.log("aca", corrorigen, corrdestino);
+          if (corrorigen.length > 0 && corrdestino.length > 0) {
+            ObtenerRuta(corrorigen, corrdestino, map);
+          } else {
+            console.log("origen o destino están vacíos");
+          }
+        },
+      });
       map.on(
         'load',
         () => {
@@ -37,7 +54,11 @@ const Map = () => {
           CambioPlaceholder();
         });
 
-
+      navigator.geolocation.getCurrentPosition((position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        corrorigen = [lon, lat];
+      });
       return map;
     }
     const map = initializeMap();
@@ -55,5 +76,41 @@ function CambioPlaceholder() {
     searchInput.setAttribute('placeholder', 'lugar, dirección, ciudad...');
   }
 }
+
+function ObtenerRuta(origen: number[], destino: number[], map: maplibregl.Map) {
+  const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${keyRuta}&start=${origen[0]},${origen[1]}&end=${destino[0]},${destino[1]}`;
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      console.log(data.features[0].geometry);
+      console.log("Exito");
+      const routeGeometry = data.features[0].geometry;
+      if (map.getLayer('route')) {
+        // Si la capa ya existe, la elimina
+        map.removeLayer('route');
+        map.removeSource('route');
+      }
+      map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: routeGeometry
+          }
+        },
+        paint: {
+          'line-width': 2,
+          'line-color': '#007cbf'
+        }
+      });
+    })
+    .catch(error => {
+      console.error(error);
+    });
+}
+
 
 export default Map;
